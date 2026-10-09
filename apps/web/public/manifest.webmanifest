@@ -1,6 +1,6 @@
 {
-  "name": "DeepSeek Harness",
-  "short_name": "DSH",
+  "name": "LeadynDSH",
+  "short_name": "LeadynDSH",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

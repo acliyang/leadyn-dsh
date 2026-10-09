@@ -58,8 +58,6 @@ export interface AccountSectionInjected {
    * @returns after both reads settle.
    */
   refreshAccount: () => Promise<void>
-  /** Open the external support questionnaire with the account, build and environment sampled by this click. */
-  contactUs: () => void
   /** Open or dismiss the login dialog. */
   showLogin: (visible: boolean) => void
   /** Claim dialog ownership for the onboarding step. */
@@ -72,10 +70,6 @@ export interface AccountSectionInjected {
   start: () => Promise<void>
   /** @param id - attempt to cancel. @returns after cancellation or an already-admitted commit. */
   cancel: (id: SignInAttemptId) => Promise<void>
-  /** @returns whether a running task currently uses the account token. */
-  hasRunningAccountTasks: () => Promise<boolean>
-  /** @returns after local account credentials are removed. */
-  signOut: () => Promise<void>
 }
 /** Composed account section props. */
 export type AccountSectionProps =

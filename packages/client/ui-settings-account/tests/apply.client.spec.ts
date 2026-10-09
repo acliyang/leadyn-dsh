@@ -16,7 +16,7 @@ import { ChatSettingsSchema as ChatConfig } from '../../ui-chat/src/chat-setting
 import { DeveloperToolsSettingsSchema as SettingsConfig } from '../../ui-settings/src/developer-tools-settings.ts'
 import type { DesktopOnboardingInjected } from '../src/client/DesktopOnboardingEntry.tsx'
 import type { AccountSectionInjected } from '../src/client/AccountSection.tsx'
-import { CONTACT_CONFIG_GLOBAL } from '../src/contact-config.ts'
+import { ACCOUNT_CONFIG_GLOBAL } from '../src/account-config.ts'
 import { AccountPlatformHost } from '../src/client/AccountPlatformHost.tsx'
 import type { AccountPlatformHostInjected } from '../src/client/AccountPlatformHost.tsx'
 import { AccountQuotaNotice } from '../src/client/AccountQuotaNotice.tsx'
@@ -88,9 +88,7 @@ it('claims account balance notices from the frame-wide quota chain and declines 
   expect(select({ ...notice, code: 'QUOTA' })).toBeNull()
 }, 60_000)
 
-it('shares account actions across seats, publishes dialog ownership, and opens contextual support', async ({ start }) => {
-  vi.stubGlobal(CONTACT_CONFIG_GLOBAL, { contactFormUrl: 'https://example.test/form/?prefill_device_model=old&hide_device_model=1', contactSource: 'harness' })
-  const open = vi.spyOn(window, 'open').mockReturnValue(null)
+it('shares account actions across seats and publishes dialog ownership', async ({ start }) => {
   vi.stubGlobal('dshDesktop', {})
   const c = await start()
   const actions = operations(c)
@@ -116,89 +114,20 @@ it('shares account actions across seats, publishes dialog ownership, and opens c
   off()
   actions.showLogin(false)
   expect(listener).toHaveBeenCalledTimes(2)
-  actions.contactUs()
-  const signedOut = new URL(String(open.mock.calls.at(-1)![0]))
-  expect(signedOut.searchParams.has('prefill_uid')).toBe(false)
-  expect(signedOut.searchParams.get('hide_uid')).toBe('1')
   c.mock.remote.account.getProfile.mockResolvedValue(ok(profile))
   c.mock.streams.push('account/watch', stored)
   await vi.waitFor(() => { expect(actions.hooks.account.getSnapshot().details?.profile).toEqual(profile) })
   const entry = c.ctx.slots.entries('settings.section').find(entry => entry.options.id === 'account')!
   expect(entry.inject!()).toBe(actions)
   expect(resolveSlotLabel(entry.options.label)).toBe('Account')
-  vi.spyOn(c.ctx.locale, 'getSnapshot').mockReturnValue({ ...c.ctx.locale.getSnapshot(), active: 'zh' })
-  actions.contactUs()
-  const support = new URL(String(open.mock.calls.at(-1)![0]))
-  expect(support.searchParams.get('prefill_uid')).toBe('account-user')
-  expect(support.searchParams.get('hide_uid')).toBe('1')
-  expect(support.searchParams.get('hide_harness_version')).toBe('1')
-  expect(support.searchParams.get('prefill_harness_version')).toBe('0.0.0-test')
-  expect(support.searchParams.get('hide_device_info')).toBe('1')
-  expect(support.searchParams.get('prefill_device_info')).toBe(navigator.userAgent)
-  expect(support.searchParams.has('prefill_device_model')).toBe(false)
-  expect(support.searchParams.has('hide_device_model')).toBe(false)
-  expect(support.searchParams.get('prefill_app_locale')).toBe('zh-CN')
-  expect(support.searchParams.has('prefill_app_version')).toBe(false)
   c.mock.streams.push('account/watch', view)
   await vi.waitFor(() => { expect(actions.hooks.account.getSnapshot().view).toEqual(view) })
-  actions.contactUs()
-  const signedOutAgain = new URL(String(open.mock.calls.at(-1)![0]))
-  expect(signedOutAgain.searchParams.has('prefill_uid')).toBe(false)
-  expect(signedOutAgain.searchParams.get('hide_uid')).toBe('1')
   await c.unload(SELF)
   expect(c.ctx.slots.entries('settings.launcher')).toHaveLength(0)
 }, 60_000)
 
-it('prefills the native device description from the Desktop bridge on every click', async ({ start }) => {
-  const open = vi.spyOn(window, 'open').mockReturnValue(null)
-  const deviceInfo = vi.fn(async () => 'platform=darwin; os=15.0; app_arch=arm64; cpu=Apple M3; memory_gib=16.0')
-  vi.stubGlobal('dshDesktop', { deviceInfo })
-  const c = await start()
-  const actions = operations(c)
-  actions.contactUs()
-  await vi.waitFor(() => { expect(open).toHaveBeenCalledOnce() })
-  const first = new URL(String(open.mock.calls.at(-1)![0]))
-  expect(first.searchParams.get('prefill_device_info'))
-    .toBe('platform=darwin; os=15.0; app_arch=arm64; cpu=Apple M3; memory_gib=16.0')
-  expect(first.searchParams.get('hide_device_info')).toBe('1')
-  deviceInfo.mockResolvedValue('platform=win32; os=10.0; app_arch=x64; memory_gib=32.0')
-  actions.contactUs()
-  await vi.waitFor(() => { expect(open).toHaveBeenCalledTimes(2) })
-  expect(new URL(String(open.mock.calls.at(-1)![0])).searchParams.get('prefill_device_info'))
-    .toBe('platform=win32; os=10.0; app_arch=x64; memory_gib=32.0')
-  expect(deviceInfo).toHaveBeenCalledTimes(2)
-}, 60_000)
 
-it('opens the questionnaire with an empty device field when the native read fails', async ({ start }) => {
-  const open = vi.spyOn(window, 'open').mockReturnValue(null)
-  const deviceInfo = vi.fn(async (): Promise<string> => { throw new Error('platform ipc unavailable') })
-  vi.stubGlobal('dshDesktop', { deviceInfo })
-  const c = await start()
-  operations(c).contactUs()
-  await vi.waitFor(() => { expect(open).toHaveBeenCalledOnce() })
-  const url = new URL(String(open.mock.calls.at(-1)![0]))
-  expect(url.searchParams.has('prefill_device_info')).toBe(false)
-  expect(url.searchParams.get('hide_device_info')).toBe('1')
-  expect(url.searchParams.get('prefill_app_locale')).toBe('en')
-  expect(deviceInfo).toHaveBeenCalledOnce()
-}, 60_000)
 
-it('reports the account sampled by the click when a native read outlasts a sign-out', async ({ start }) => {
-  const open = vi.spyOn(window, 'open').mockReturnValue(null)
-  const device = Promise.withResolvers<string>()
-  vi.stubGlobal('dshDesktop', { deviceInfo: vi.fn(() => device.promise) })
-  const c = await start()
-  const actions = operations(c)
-  c.mock.remote.account.getProfile.mockResolvedValue(ok(profile))
-  c.mock.streams.push('account/watch', stored)
-  await vi.waitFor(() => { expect(actions.hooks.account.getSnapshot().details?.profile).toEqual(profile) })
-  actions.contactUs()
-  c.mock.streams.push('account/watch', view)
-  await vi.waitFor(() => { expect(actions.hooks.account.getSnapshot().view).toEqual(view) })
-  device.resolve('platform=darwin; os=15.0; app_arch=arm64; memory_gib=16.0')
-  await vi.waitFor(() => { expect(open).toHaveBeenCalledOnce() })
-  expect(new URL(String(open.mock.calls.at(-1)![0])).searchParams.get('prefill_uid')).toBe('account-user')
-}, 60_000)
 
 it('coalesces refreshes, publishes independent failures, and rejects stale responses after sign-out or unload', async ({ start }) => {
   vi.stubGlobal('dshDesktop', {})
@@ -250,10 +179,6 @@ it('uses the Desktop login carrier and exposes operation errors', async ({ start
   mock.remote.account.cancelSignIn.mockResolvedValueOnce(ok(view)).mockResolvedValueOnce(failure)
   await actions.cancel(id)
   await expect(actions.cancel(id)).rejects.toThrow('account cancel failed')
-  mock.remote.account.signOut.mockResolvedValueOnce(ok(view)).mockResolvedValueOnce(failure)
-  await actions.signOut()
-  // The launcher renders nothing, so the refused Remote call reaches the caller unchanged.
-  await expect(actions.signOut()).rejects.toBe(failure.error)
 }, 60_000)
 
 it('uses the Desktop stream origin and exposes the native platform bridge', async ({ start, mock }) => {
@@ -441,7 +366,7 @@ it('reads the unnotified bonus in the active locale and acknowledges only after 
 
 it('keeps the notice and its acknowledgement retry across repeated signed-in frames', async ({ start }) => {
   vi.stubGlobal('dshDesktop', {})
-  vi.stubGlobal(CONTACT_CONFIG_GLOBAL, { bonusAckRetryDelayMs: 1, bonusAckRetryMaxDelayMs: 4 })
+  vi.stubGlobal(ACCOUNT_CONFIG_GLOBAL, { bonusAckRetryDelayMs: 1, bonusAckRetryMaxDelayMs: 4 })
   const c = await start()
   const actions = operations(c)
   const orderId = '4c1b0000-0000-4000-8000-000000000000'
@@ -585,15 +510,6 @@ it('samples the build version, language, and UTC offset for every account call',
   })
 }, 60_000)
 
-it('reads the account task impact and reports a refused query', async ({ start, mock }) => {
-  vi.stubGlobal('dshDesktop', {})
-  const c = await start()
-  const actions = operations(c)
-  mock.remote.account.hasRunningAccountTasks.mockResolvedValueOnce(ok(true))
-  expect(await actions.hasRunningAccountTasks()).toBe(true)
-  mock.remote.account.hasRunningAccountTasks.mockResolvedValueOnce({ ok: false, error: new RemoteError('gateway/internal', 'offline', {}) })
-  await expect(actions.hasRunningAccountTasks()).rejects.toThrow('account task query failed')
-}, 60_000)
 
 
 it('forwards live account notices and removes their subscriptions', async ({ start }) => {
