@@ -1,5 +1,6 @@
 import { tmpdir } from 'node:os'
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { Arch, Platform } from 'electron-builder'
 import { Packager } from 'app-builder-lib'
 import { describe, expect, it, vi } from 'vitest'
@@ -38,6 +39,8 @@ describe('installer preparation preserves application dependencies', () => {
       const { createElectronBuilderConfig } = await import('../electron-builder.config.mjs')
       const config = createElectronBuilderConfig(env, platform, 'x64')
       expect(config.productName).toBe('LeadynDSH')
+      expect(config.win.icon).toBe(fileURLToPath(new URL('../resources/icon-windows.ico', import.meta.url)))
+      expect(config.mac.icon).toBe(fileURLToPath(new URL('../resources/icon-macos.png', import.meta.url)))
       expect(config.appId).toBe(env.DSH_DESKTOP_APP_ID)
       expect(config.protocols).toEqual([{ name: 'LeadynDSH', schemes: ['dsh'] }])
       expect(config.nsis.uninstallDisplayName).toBe('${productName}')
