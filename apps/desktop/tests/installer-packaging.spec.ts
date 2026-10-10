@@ -37,6 +37,12 @@ describe('installer preparation preserves application dependencies', () => {
     try {
       const { createElectronBuilderConfig } = await import('../electron-builder.config.mjs')
       const config = createElectronBuilderConfig(env, platform, 'x64')
+      expect(config.productName).toBe('LeadynDSH')
+      expect(config.appId).toBe(env.DSH_DESKTOP_APP_ID)
+      expect(config.protocols).toEqual([{ name: 'LeadynDSH', schemes: ['dsh'] }])
+      expect(config.nsis.uninstallDisplayName).toBe('${productName}')
+      expect(config.extraMetadata).not.toHaveProperty('name')
+      expect(config.extraMetadata).not.toHaveProperty('productName')
       const aboutIcon = config.extraResources.find(resource => resource.to === 'icon.png')
       expect(aboutIcon).toBeDefined()
       expect(readFileSync(aboutIcon!.from)).toEqual(readFileSync(new URL('../resources/icon-windows.png', import.meta.url)))
