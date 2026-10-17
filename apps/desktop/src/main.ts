@@ -30,7 +30,6 @@ import { installDesktopDirectoryPicker } from './directory-picker.ts'
 import { installMicrophonePermissions } from './microphone-permissions.ts'
 import { DesktopBackendController } from './backend-controller.ts'
 import { DESKTOP_IPC, SCHEME, assertDesktopSender, type DesktopUpdateState } from './ipc.ts'
-import { readDeviceInfo } from './device-info.ts'
 import { desktopUpdateReadyConfirmation, formatDesktopMessage, resolveDesktopLocale, resolveDesktopStartupLocale } from './locale.ts'
 import { claimDesktopSingleInstance } from './single-instance.ts'
 import { desktopUpdateChannel } from './update-channel.ts'
@@ -653,7 +652,6 @@ async function main(): Promise<void> {
     // A confirmation on a hidden window would go unseen, so it waits for the next show; the mandatory
     // flow keeps its own taskbar and Dock attention instead.
     if (!isMandatory()) await windowShown()
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- A quit can begin while the show is awaited.
     if (quitting) return state
     return updates.install(version)
   }
@@ -772,10 +770,6 @@ async function main(): Promise<void> {
   ipcMain.handle(DESKTOP_IPC.updatesStatus, (event) => {
     assertProductSender(event)
     return presentDesktopUpdate(updates.state)
-  })
-  ipcMain.handle(DESKTOP_IPC.deviceInfo, (event) => {
-    assertProductSender(event)
-    return readDeviceInfo()
   })
   ipcMain.handle(DESKTOP_IPC.onboardingApiKey, async (event) => {
     assertProductSender(event)
@@ -932,7 +926,7 @@ async function main(): Promise<void> {
   const applicationIconPath = development ? join(app.getAppPath(), 'resources', 'icon-windows.png')
     : join(process.resourcesPath, 'icon.png')
   app.setAboutPanelOptions({
-    applicationName: 'DeepSeek Harness',
+    applicationName: 'LeadynDSH',
     applicationVersion: app.getVersion(),
     // The release has no separate build number; omit Electron's bundle version.
     version: '',

@@ -3,26 +3,26 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-brand-official/README.md
 /:
-  en: a031cd88e552dc89
-  zh: 76c1af2393cb6983
+  en: 7c65121d4c392764
+  zh: f1318d9fccf0b853
 /deepseek-ai-dsh-client-ui-brand-official:
   en: 7cee1be833cea807
   zh: 9953e1b38cb23d34
 /deepseek-ai-dsh-client-ui-brand-official/summary:
-  en: cb6bf0a4eabd271b
-  zh: 181cf091ff44c194
+  en: 04ebf11f34c98400
+  zh: b4490865f3e14bb8
 /deepseek-ai-dsh-client-ui-brand-official/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package:
-  en: 716dc268f98996db
-  zh: 7372a67ef81a0d5e
+  en: 3b2f3c3bc55f985a
+  zh: 3f1337a96a3e116a
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package/choosing-the-profile:
-  en: 3f3f96d6adf98193
-  zh: 0b8691656a8532a0
+  en: fd478e4bf9e36431
+  zh: 510f940fd5cd7baf
 /deepseek-ai-dsh-client-ui-brand-official/use-this-package/replacing-the-brand:
-  en: 6a923aa630d01d65
-  zh: 5df0c24eebd9d0d0
+  en: bceac82d9898cbc0
+  zh: 2b1795cc5b7a7226
 /deepseek-ai-dsh-client-ui-brand-official/understand-the-implementation:
   en: 4e4aa617edd7f4ad
   zh: ea4e2d6d4a39535e

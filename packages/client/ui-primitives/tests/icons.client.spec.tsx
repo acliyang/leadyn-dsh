@@ -123,28 +123,25 @@ describe('product icon set', () => {
   })
 })
 
-describe('FishLogo', () => {
-  it('renders the fish path in currentColor at the native ratio', () => {
-    const { container } = render(<primitives.FishLogo />)
+describe('LeadynLogo', () => {
+  it('renders the brand mark square at the requested size', () => {
+    const { container } = render(<primitives.LeadynLogo />)
     const svg = container.querySelector('svg')!
     expect(svg.getAttribute('width')).toBe('24')
-    expect(Number(svg.getAttribute('height'))).toBeCloseTo(17.66, 1)
-    expect(svg.getAttribute('viewBox')).toBe('0 0 23.16 17.04')
-    expect(container.querySelectorAll('path')).toHaveLength(1)
-    expect(container.innerHTML).toContain('currentColor')
-    expect(container.innerHTML).not.toContain('M0 0L23.16')
+    expect(svg.getAttribute('height')).toBe('24')
+    expect(svg.getAttribute('viewBox')).toBe('43.19 0 1216.22 1216.22')
+    expect(container.querySelectorAll('path')).toHaveLength(11)
+    expect(container.innerHTML).toContain('#ededed')
   })
-})
 
-describe('BrandWordmark', () => {
-  it('can render the name artwork with or without its leading mark', () => {
-    const view = render(<primitives.BrandWordmark />)
-    const svg = view.container.querySelector('svg')!
-    expect(svg.getAttribute('width')).toBe('182')
-    expect(svg.getAttribute('viewBox')).toBe('0 0 182 24')
-
-    view.rerender(<primitives.BrandWordmark includeMark={false} />)
-    expect(svg.getAttribute('width')).toBe('156')
-    expect(svg.getAttribute('viewBox')).toBe('26 0 156 24')
+  it('keeps clip and gradient ids unique across instances', () => {
+    const { container } = render(<><primitives.LeadynLogo /><primitives.LeadynLogo /></>)
+    const ids = [...container.querySelectorAll('[id]')].map(element => element.getAttribute('id')!)
+    expect(ids).toHaveLength(6)
+    expect(new Set(ids).size).toBe(6)
+    for (const reference of container.querySelectorAll('[clip-path], [fill^="url("]')) {
+      const value = reference.getAttribute('clip-path') ?? reference.getAttribute('fill')!
+      expect(container.querySelector(value.slice(4, -1))).not.toBeNull()
+    }
   })
 })

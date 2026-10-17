@@ -151,7 +151,7 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('DSH Local Build')).toBeTruthy()
+    expect(screen.getByText('LeadynDSH')).toBeTruthy()
     expect(screen.getByText('1.2.3-rc.4-0123456-dirty')).toBeTruthy()
     expect(container.querySelector('svg')).not.toBeNull()
   })
@@ -172,11 +172,11 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('DSH Local Build')).toBeTruthy()
+    expect(screen.getByText('LeadynDSH')).toBeTruthy()
     expect(screen.getByText(expected)).toBeTruthy()
   })
 
-  it('retains the local-build fallback without complete build metadata', () => {
+  it('retains the generic brand-name fallback without build metadata', () => {
     render(<SidebarRoot
       collapsed={false} width={300}
       useSessions={neverHook} useSessionStatus={useSessionStatus} useSessionRetainInfo={neverHook}
@@ -188,7 +188,7 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('DSH Local Build')).toBeTruthy()
+    expect(screen.getByText('LeadynDSH')).toBeTruthy()
   })
 
   it('hands the region its wide flag and clamps expandSidebar to the collapsed state', () => {

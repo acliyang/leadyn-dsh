@@ -555,7 +555,7 @@ describe('desktop main startup', () => {
     await vi.advanceTimersByTimeAsync(0)
     const zh = locale === 'zh-CN'
     expect(harness.dialog.showMessageBox).toHaveBeenLastCalledWith(expect.objectContaining({
-      type: 'info', title: zh ? '关于 DeepSeek Harness' : 'About DeepSeek Harness', message: 'DeepSeek Harness',
+      type: 'info', title: zh ? '关于 LeadynDSH' : 'About LeadynDSH', message: 'LeadynDSH',
       detail: zh ? '版本 V1.0.0' : 'Version V1.0.0', buttons: [zh ? '确定' : 'OK'], cancelId: 0,
     }))
     // A dialog that cannot open is logged, not surfaced as an unhandled rejection.
@@ -806,7 +806,7 @@ describe('desktop main startup', () => {
   it('accepts product IPC only from the current application top frame in the owned main window', async () => {
     await readyForUpdate()
     const sender = harness.windows[0]!.webContents
-    for (const channel of [DESKTOP_IPC.updatesStatus, DESKTOP_IPC.deviceInfo]) {
+    for (const channel of [DESKTOP_IPC.updatesStatus]) {
       const handler = harness.handlers.get(channel)!
       expect(() => handler({ sender, senderFrame: sender.mainFrame })).not.toThrow()
       for (const event of [
@@ -973,7 +973,7 @@ describe('desktop main startup', () => {
     expect(() => handler(event, 'application', NaN, 34)).toThrow('invalid popup request')
     const application = handler(event, 'application', 48, 34)
     expect(harness.menu.buildFromTemplate.mock.lastCall![0].map(item => item.label ?? item.type)).toEqual([
-      '关于 DeepSeek Harness', 'separator', '检查更新…', '管理 dsh 命令…', 'separator', '退出',
+      '关于 LeadynDSH', 'separator', '检查更新…', '管理 dsh 命令…', 'separator', '退出',
     ])
     expect(harness.popup.mock.lastCall![0]).toMatchObject({ window, x: 48, y: 34 })
     expect(harness.popup.mock.lastCall![0].callback).toBeTypeOf('function')

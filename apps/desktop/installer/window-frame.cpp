@@ -7,9 +7,17 @@
 #include <objidl.h>
 #include <commctrl.h>
 #include <dwmapi.h>
-#include <gdiplus.h>
-#include <new>
 #include <algorithm>
+// Windows SDK 10.0.19041 GDI+ headers require unqualified min/max with NOMINMAX.
+namespace Gdiplus {
+    using std::min;
+    using std::max;
+}
+#pragma warning(push)
+#pragma warning(disable: 4458)
+#include <gdiplus.h>
+#pragma warning(pop)
+#include <new>
 #include "progress.h"
 #include "extract.h"
 #include "extract-report.h"
