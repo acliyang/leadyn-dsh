@@ -1,11 +1,10 @@
 /**
- * Render the Windows tray icon with an enlarged whale from `resources/icon-windows.svg`.
+ * Render the Windows tray icon from the Leadyn logo.
  *
  * The tray shows the icon at 16 logical pixels, so Windows picks one of the
- * bundled bitmaps by display scale. Each size is rasterized from the vector
- * source separately instead of downscaling one large bitmap, which keeps edges
- * crisp at every scale. The committed `resources/tray-windows.ico` is the output;
- * rerun `pnpm run render:tray-icon` in `apps/desktop` after changing the vector source.
+ * bundled bitmaps by display scale. Each size is rasterized separately to keep
+ * edges crisp. The committed `resources/tray-windows.ico` is the output; rerun
+ * `pnpm run render:tray-icon` in `apps/desktop` after changing the logo.
  */
 
 import { readFile, writeFile } from 'node:fs/promises'
@@ -18,13 +17,10 @@ export const TRAY_ICON_SIZES = [16, 20, 24, 32, 40, 48, 64] as const
 
 /** Vector source and committed output of the tray icon. */
 export const TRAY_ICON_PATHS = {
-  source: fileURLToPath(new URL('../resources/icon-windows.svg', import.meta.url)),
+  source: fileURLToPath(new URL('../../../leadyn/logo.svg', import.meta.url)),
   output: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)),
 } as const
 
-/** Coordinate space of the vector source; sharp's SVG density is scaled against it. */
-const SOURCE_EDGE = 1024
-const SOURCE_DENSITY = 72
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 const ICON_DIRECTORY_BYTES = 6
 const ICON_ENTRY_BYTES = 16
@@ -93,19 +89,19 @@ export function unpackIco(ico: Buffer): IcoEntry[] {
 
 /**
  * Rasterize the vector source at each tray size.
- * @param svg - SVG document with a 1024-unit square viewBox and a `tray-glyph` group.
+ * @param svg - Leadyn logo SVG.
  * @param sizes - Bitmap edges to render.
  * @returns PNG entries in the given order.
  */
 export async function renderTrayIconEntries(svg: Buffer, sizes: readonly number[] = TRAY_ICON_SIZES): Promise<IcoEntry[]> {
-  const source = svg.toString('utf8')
-  const glyph = '<g id="tray-glyph"'
-  if (!source.includes(glyph)) throw new Error('tray icon: SVG requires a tray-glyph group')
-  // Scale around the application tile center, retaining its background and the whale's aspect ratio.
-  const tray = Buffer.from(source.replace(glyph, `${glyph} transform="translate(552 544) scale(1.2) translate(-552 -544)"`))
+  const cropped = await sharp(svg, { density: 144 })
+    .trim({ background: '#00000000', threshold: 0 })
+    .png().toBuffer()
   return Promise.all(sizes.map(async size => ({
     size,
-    png: await sharp(tray, { density: SOURCE_DENSITY * size / SOURCE_EDGE }).resize(size, size).png().toBuffer(),
+    png: await sharp(cropped)
+      .resize(size, size, { fit: 'contain', background: '#00000000' })
+      .png().toBuffer(),
   })))
 }
 

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { packIco, TRAY_ICON_PATHS, TRAY_ICON_SIZES, unpackIco, type IcoEntry } from '../scripts/render-tray-icon.ts'
+import { packIco, renderTrayIconEntries, TRAY_ICON_PATHS, TRAY_ICON_SIZES, unpackIco, type IcoEntry } from '../scripts/render-tray-icon.ts'
+import { WINDOWS_APP_ICON_PATHS } from '../scripts/render-windows-app-icon.ts'
 
 /** Smallest valid-looking PNG stream: signature plus an IHDR chunk declaring the given edge. */
 function pngStub(width: number, height = width): Buffer {
@@ -35,9 +36,12 @@ describe('tray icon packaging', () => {
     expect(() => unpackIco(forged)).toThrow('declares 20 but holds 16x16')
   })
 
-  it('ships one crisp bitmap per supported display scale in the committed tray icon', () => {
+  it('ships the Leadyn logo at every supported display scale', async () => {
+    expect(TRAY_ICON_PATHS.source).toBe(WINDOWS_APP_ICON_PATHS.source)
+    const rendered = await renderTrayIconEntries(readFileSync(TRAY_ICON_PATHS.source))
     const entries = unpackIco(readFileSync(TRAY_ICON_PATHS.output))
     expect(entries.map(entry => entry.size)).toEqual([...TRAY_ICON_SIZES])
+    expect(entries).toEqual(rendered)
     for (const entry of entries) expect(entry.png.length).toBeGreaterThan(100)
   })
 })
