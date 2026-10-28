@@ -82,7 +82,7 @@ Windows 在整个运行期间常驻托盘图标。悬停提示为产品名，单
 
 ## 关键技术决策
 
-Windows 的应用可执行文件、开始菜单快捷方式、任务栏、托盘、安装程序、卸载程序和关于面板使用 [Leadyn 标志](../../leadyn/logo.svg)。运行 `pnpm --filter @deepseek-ai/dsh-desktop run render:windows-app-icon` 重新生成 `resources/icon-windows.png`（1024×1024）和 `resources/icon-windows.ico`（16、20、24、32、40、48、64、128、256 像素）；运行 `pnpm --filter @deepseek-ai/dsh-desktop run render:tray-icon` 重新生成 `resources/tray-windows.ico`（16、20、24、32、40、48、64 像素）。两个渲染器都会移除透明画布留白，并保留标志比例。electron-builder 会将应用 ICO 嵌入 Windows 可执行文件（[Windows 图标要求](https://learn.microsoft.com/en-us/windows/apps/design/iconography/app-icon-construction)）。macOS 应用图标使用独立资源，这两个 Windows 生成器不会更新它。卸载程序的欢迎和完成页共用 `installer/assets/uninstaller-sidebar.png`，准备阶段将其转换为 164×314 BMP。
+Windows 的应用可执行文件、开始菜单快捷方式、任务栏、托盘、安装程序、卸载程序和关于面板使用 [Leadyn 标志](../../leadyn/logo.svg)。运行 `pnpm --filter @deepseek-ai/dsh-desktop run render:windows-app-icon` 重新生成 `resources/icon-windows.png`（1024×1024）和 `resources/icon-windows.ico`（16、20、24、32、40、48、64、128、256 像素）；运行 `pnpm --filter @deepseek-ai/dsh-desktop run render:tray-icon` 重新生成 `resources/tray-windows.ico`（16、20、24、32、40、48、64 像素）；运行 `pnpm --filter @deepseek-ai/dsh-desktop run render:installer-brand` 重新生成安装器品牌图——它把标志与 **LeadynDSH** 字标组合为 `installer/assets/brand.png` 及其暗色、2× 变体，以及卸载程序欢迎页和完成页显示的 `installer/assets/uninstaller-sidebar.png`。渲染器都会移除透明画布留白，并保留标志比例。electron-builder 会将应用 ICO 嵌入 Windows 可执行文件（[Windows 图标要求](https://learn.microsoft.com/en-us/windows/apps/design/iconography/app-icon-construction)）。macOS 应用图标使用独立资源，这些 Windows 生成器不会更新它。准备阶段把五张安装器位图转换为 BMP，字标来自 `installer/assets/leadyn-dsh-wordmark.svg`。
 
 快捷键覆盖保存在 `app.getPath('userData')/keybindings.json`，与 `DSH_HOME` 分离。主进程校验并串行保存修改后才发布已接受键位。读取失败保留上次接受的键位并阻止编辑，包括全部恢复；不可读和未来版本的文件保持不变。开发时可通过 `DSH_DESKTOP_USER_DATA_DIR` 隔离这些偏好，启动器会输出解析后的路径。格式和冲突语义见[快捷键服务](../../packages/client/shortcuts/README.zh.md)。
 
@@ -251,7 +251,7 @@ Desktop 在 Host 启动后、打开工作区前检查模型 API Key 引用是否
 
 Windows 安装程序使用原生 NSIS 页面，提供亮暗配色、系统阴影、可编辑的安装目录，以及默认勾选立即启动的完成页。安装仅面向当前用户。点击安装或按 Enter 均校验当前路径；路径规范化后仍拒绝磁盘根目录，包括带重复末尾分隔符的写法。新安装位置必须为空，非空位置必须是已登记的安装目录。受影响安装路径中的程序运行时显示系统提示，并保持应用运行；其他目录中的同名应用不阻止安装。静默更新最多等待受影响应用退出十秒，若仍在运行则以退出码 2 结束。
 
-主题在启动时跟随 Windows；可用 `/THEME=light`、`/THEME=dark` 和 `/THEME=auto` 显式选择配色。窗口在品牌控件准备完成后显示。欢迎页首次出现时，安装窗口会一次性移到普通窗口前方；若焦点在其他窗口，任务栏按钮会闪烁提示，但安装窗口不会始终置顶。进度读取锁定版本的 7-Zip 解压器百分比；目录替换、注册和清理仍使用有界估算。加权百分比不代表剩余时间。NSIS 报告成功后，进度条用 600 毫秒补满并短暂显示 100%，再显示完成页；切换目标时长为 750 毫秒。完成页保留窗口位置。点击完成后，安装程序先隐藏窗口，再启动已安装的可执行文件；启动失败会恢复页面以供重试。目录替换和失败恢复遵循[安装检查](packaging/README.zh.md#runtime-file-selection)。首次启动的配置档案准备仍属于独立的 Desktop 操作。
+主题在启动时跟随 Windows；可用 `/THEME=light`、`/THEME=dark` 和 `/THEME=auto` 显式选择配色。安装按钮上方的品牌图跟随该配色：亮色与暗色是两个独立位图，进度覆盖层复用当前配色对应的那一份。窗口在品牌控件准备完成后显示。欢迎页首次出现时，安装窗口会一次性移到普通窗口前方；若焦点在其他窗口，任务栏按钮会闪烁提示，但安装窗口不会始终置顶。进度读取锁定版本的 7-Zip 解压器百分比；目录替换、注册和清理仍使用有界估算。加权百分比不代表剩余时间。NSIS 报告成功后，进度条用 600 毫秒补满并短暂显示 100%，再显示完成页；切换目标时长为 750 毫秒。完成页保留窗口位置。点击完成后，安装程序先隐藏窗口，再启动已安装的可执行文件；启动失败会恢复页面以供重试。目录替换和失败恢复遵循[安装检查](packaging/README.zh.md#runtime-file-selection)。首次启动的配置档案准备仍属于独立的 Desktop 操作。
 
 Windows 打包使用 Visual C++ Build Tools 和 Windows SDK 编译 x86 Win32/GDI+ 辅助库；签名构建通过已配置的 Windows 签名器对该库签名。准备钩子在所有平台上均由 electron-builder 继续负责收集生产依赖。
 
